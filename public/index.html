@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BlackJack Game</title>
+    <!-- <documentation at http://demos.jquerymobile.com/1.4.1/ > -->
+  
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="/public/javascripts/index.js"></script>
+    <script src="/public/javascripts/card-game.js"></script>
+    <script src="/public/javascripts/card.js"></script>
+    <script src="/public/javascripts/deck.js"></script>
+    <link rel="stylesheet" type="text/css" href="/public/stylesheets/style.css">
+</head>
+
+<body>
+  
+    <!-- Start of  page -->
+    <div data-role="page"  id="home">
+            <!--   page header -->
+            <div data-role="header" data-theme='a'>
+               <!-- helpful location   -->
+              <!-- https://demos.jquerymobile.com/1.2.0/docs/toolbars/docs-navbar.html -->
+
+                <h1>BlackJack</h1>
+                <div data-role="navbar"  data-theme='b'>
+                    <ul>
+                      <li><a href="#home">Play</a></li>
+                      <li><a href="#Login">Login</a></li>
+                      <li><a href="#Hiscores">Hiscores</a></li>
+                    </ul>
+                  </div><!-- /navbar -->
+               
+            </div>
+            <!--   page content -->
+            <div data-role="content" data-theme='b'>
+               <h2>Welcome to BlackJack!</h2>
+               <h2>Bet is $1 per game</h2>
+               <p id="loggedInAs">Logged in as Guest</p>
+            </div>
+
+            <div data-role="blackjackgame" data-theme="b">
+              <button class="playing" id="deal">Deal Deck</button>
+              <button class="playing" id="hit">Hit</button>
+              <button class="playing" id="stay">Stay</button><br>
+
+              <span id="cash">Cash: </span>
+              <h1>Player:</h1>
+              <span id="pScore">Score:</span><br>
+              <span id="playerCard"></span>
+              <h1>Dealer:</h1>
+              <span id="cScore">Score:</span><br>
+              <span id="computerCard"></span><br>
+              <h1 id="result"></h1>
+            </div>
+              
+            <!--  page footer -->
+            <div data-role="footer" data-theme='b'>
+                    <h1>Copyrigtht 2020 by Mahmmoud Alnouri</h1>
+            </div>
+        </div>
+
+
+        <div data-role="page"  id="Login">
+            <!--  page header -->
+            <div data-role="header" data-theme='a'>
+              <h1>Login</h1>
+              <div data-role="navbar"  data-theme='b'>
+                  <ul>
+                    <li><a href="#home">Play</a></li>
+                    <li><a href="#Login">Login</a></li>
+                    <li><a href="#Hiscores">Hiscores</a></li>
+                   </ul>
+                </div><!-- /navbar -->
+          </div>
+            <!-- page content -->
+            <div data-role="content" data-theme='c'>
+              <h2>Enter login information</h2>
+                Enter UserName<br />
+                <input type="text" value="" id="user" />
+                Enter Password<br />
+                <input type="text" value="" id="pass" />
+
+                <form>
+                  <div class="ui-field-contain">
+                    <label for="select-user">Login as</label>
+                    <select name="select-user" id="select-user">
+                      <option value="None">None Selected</option>
+                      <option value="NewUser">New User</option>
+                      <option value="ExistingUser">Existing User</option>
+                    </select>
+                  </div>
+                </form>
+
+                <input type="button" value="Click To Login" id="buttonLogin"  data-inline="true" />
+                  <input type="button" value="Clear Data" id="buttonClear"  data-inline="true" />
+            </div>
+              
+            <!--   page footer -->
+            <div data-role="footer" data-theme='b'>
+              <h1>Copyrigtht 2020 by Mahmmoud Alnouri</h1>
+            </div>
+        </div>
+
+
+
+
+    <div data-role="page"  id="Hiscores">
+            <!--   page header -->
+            <div data-role="header" data-theme='a'>
+                <h1>Hiscores</h1>
+              <div data-role="navbar"  data-theme='b'>
+                  <ul>
+                    <li><a href="#home">Play</a></li>
+                    <li><a href="#Login">Login</a></li>
+                    <li><a href="#Hiscores">Hiscores</a></li>
+                  </ul>
+                </div><!-- /navbar -->
+          </div>
+            <!--   page content -->
+            <div data-role="content" data-theme='e'>
+              <h2>Hiscores</h2>
+              <div id="divMovieList"></div>
+            </div>
+            <input type="button" value="Sort By Money" id="buttonSortMoney" data-inline="true"  />
+            <input type="button" value="Sort By Wins" id="buttonSortWins" data-inline="true"   />
+              
+            <!--   page footer -->
+            <div data-role="footer" data-theme='b'>
+              <h1>Copyrigtht 2020 by Mahmmoud Alnouri</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start of  page -->
+    <div data-role="page"  id="page3">
+            <!--   page header -->
+            <div data-role="header" data-theme='a'>
+                <h1>User Details</h1>
+              <div data-role="navbar"  data-theme='b'>
+                  <ul>
+                    <li><a href="#home">Play</a></li>
+                    <li><a href="#Login">Login</a></li>
+                    <li><a href="#Hiscores">Hiscores</a></li>
+                  </ul>
+                </div><!-- /navbar -->
+          </div>
+            <!--  content -->
+            <div data-role="content" data-theme='c'>
+                <h2>User details</h2>
+                <p id="IDparmHere" hidden>Placeholder</p>  <!-- hidden a place to stash the user ID -->
+                <p id="listUser"></p>
+                <p id="listMoney"></p>
+                <p id="listGames"></p>
+                <p id="listWins"></p>
+                <p id="listLoss"></p>
+                <p id="listWinrate"></p>
+                
+              
+            </div>
+              
+            <!--    footer -->
+            <div data-role="footer" data-theme='b'>
+              <h1>Copyrigtht 2020 by Mahmmoud Alnouri</h1>
+            </div>
+        </div>
+    </div>
+
+    
+
+</body>
+</html>

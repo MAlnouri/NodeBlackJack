@@ -1,0 +1,20 @@
+h1 {
+  color:  blue;
+}
+
+span {
+  font-size: 20px;
+}
+
+#stay {
+  display: none;
+}
+
+#hit {
+  display: none;
+}
+
+.playing {
+  display: block;
+  font-size: 20px;
+}
