@@ -23,7 +23,7 @@ serverPlayerArray.push(new Player("Nikki", "abc123", 1, 8, 10));
 
 
 /* POST to login */
-router.post('/Login', function(req, res) {
+router.post('/login', function(req, res) {
   console.log(req.body);
   serverPlayerArray.push(req.body);
   console.log(serverPlayerArray);
@@ -33,7 +33,7 @@ router.post('/Login', function(req, res) {
 
 
 /* GET hiscores. */
-router.get('/Hiscores', function(req, res) {
+router.get('/hiscores', function(req, res) {
   res.json(serverPlayerArray);
  });
 
