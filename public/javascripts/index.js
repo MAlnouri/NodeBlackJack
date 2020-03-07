@@ -11,116 +11,271 @@ var Player = function (userName, password, wins, losses, money) {
   this.money = 25;
   this.ID = playerArray.length + 1;
 }
-/*
-playerArray.push(new Player("Mak", "abc123"));
-playerArray.push(new Player("Jack", "abc12345"));
-//console.log(playerArray[0].wins);
-playerArray[0].wins = 10;
-playerArray[0].losses = 2;
-playerArray[1].wins = 1;
-playerArray[1].losses = 5;
-playerArray[1].money = 25;
-//console.log(playerArray[0].wins);
-*/
 
 document.addEventListener("DOMContentLoaded", function () {
 
   //pushes username and password to player array when login button is clicked
   document.getElementById("buttonLogin").addEventListener("click", function () {
-    //changes value for existing or new user based on drop down choice selected
-    $(document).bind("change", "#select-user", function (event, ui) {
-      newOrOldUser = $('#select-user').val();
-    });
-
     if(newOrOldUser == "ExistingUser") {
       //logs in as existing user
-      loginID = login(document.getElementById("user").value);
+      loginID = login(document.getElementById("user").value, document.getElementById("pass").value);
       document.getElementById("loggedInAs").innerHTML = "Logged in as " + playerArray[loginID].userName;
       //reveals logged in as element
       document.getElementById("loggedInAs").style.display = "block";
+      //changes money for user
+      chips = playerArray[loginID].money;
+      cash.innerHTML = "Cash: " + chips;
 
     } else if (newOrOldUser == "NewUser") {
       //if new user, pushes user info to player array and to server
-      //playerArray.push(new Player(document.getElementById("user").value, document.getElementById("pass").value));
       let newPlayer = new Player(document.getElementById("user").value, document.getElementById("pass").value);
-      playerArray.push(newPlayer);
       addNewPlayer(newPlayer);
       console.log(playerArray);
     } else {
       //if none selected, prompts user to select login type
       console.log("Please select something");
     }
-});
-
-//sorts list by most money
-document.getElementById("buttonSortMoney").addEventListener("click", function () {
-  playerArray.sort(dynamicSort("Money"));
-  createList();
-  document.location.href = "index.html#Hiscores";
-});
-
-//sorts list by most wins
-document.getElementById("buttonSortWins").addEventListener("click", function () {
-  playerArray.sort(dynamicSort("Wins"));
-  createList();
-  document.location.href = "index.html#Hiscores";
-});
-
-$(document).on("pagebeforeshow", "#Hiscores", function (event) {   // have to use jQuery 
-  FillArrayFromServer();  // need to get fresh data
-  // createList(); this can't be here, as it is not waiting for data from server
-});
-
-document.getElementById("buttonClear").addEventListener("click", function () {
-  document.getElementById("user").value = "";
-  document.getElementById("pass").value = "";
-});
-
-$(document).on("pagebeforeshow", "#Login", function (event) {   // have to use jQuery 
-  document.getElementById("user").value = "";
-  document.getElementById("pass").value = "";
   });
 
-$(document).on("pagebeforeshow", "#page3", function (event) {   // have to use jQuery 
-  let localID = document.getElementById("IDparmHere").innerHTML;
-  console.log(localID);
-  for(let i=0; i < playerArray.length; i++) {   
-    if(playerArray[i].ID = localID){
-      let w = playerArray[i].wins;
-      let l = playerArray[i].losses;
-      document.getElementById("listUser").innerHTML = "User Name: " + playerArray[localID - 1].userName;
-      document.getElementById("listMoney").innerHTML = "Money $" + playerArray[i].money;
-      document.getElementById("listGames").innerHTML = "Games Played " + (w + l);
-      document.getElementById("listWins").innerHTML = "Wins " + playerArray[i].wins;
-      document.getElementById("listLoss").innerHTML = "Losses " + playerArray[i].losses;
-      document.getElementById("listWinrate").innerHTML = "Winrate " + (w / (w + l) * 100) + " %";
-    }  
-  }
-});
+  //changes value for existing or new user based on drop down choice selected
+  $(document).bind("change", "#select-user", function (event, ui) {
+    newOrOldUser = $('#select-user').val();
+  });
 
-});
+  //sorts list by most money
+  document.getElementById("buttonSortMoney").addEventListener("click", function () {
+    playerArray = playerArray.sort(compareMoney);
+    createList();
+    //document.location.href = "index.html#Hiscores";
+  });
 
-/**
- *  https://ourcodeworld.com/articles/read/764/how-to-sort-alphabetically-an-array-of-objects-by-key-in-javascript
-* Function to sort alphabetically an array of objects by some specific key.
-* 
-* @param {String} property Key of the object to sort.
-*/
-function dynamicSort(property) {
-  var sortOrder = 1;
+  //sorts list by most wins
+  document.getElementById("buttonSortWins").addEventListener("click", function () {
+    playerArray = playerArray.sort(compareWins);
+    createList();
+    //document.location.href = "index.html#Hiscores";
+  });
 
-  if (property[0] === "-") {
-    sortOrder = -1;
-    property = property.substr(1);
-  }
+  $(document).on("pagebeforeshow", "#Hiscores", function (event) {   // have to use jQuery 
+    FillArrayFromServer();  // need to get fresh data
+    // createList(); this can't be here, as it is not waiting for data from server
+  });
 
-  return function (a, b) {
-    if (sortOrder == -1) {
-      return b[property].localeCompare(a[property]);
-    } else {
-      return a[property].localeCompare(b[property]);
+  $(document).on("pagebeforeshow", "#Login", function (event) {   // have to use jQuery 
+    FillArrayFromServer();  // need to get fresh data
+  });
+
+  /* leaving ListAll to force the pagebeforeshow on ListAll from within that page when delete
+  $(document).on("pagebeforeshow", "#refreshPage", function (event) {   
+    document.location.href = "index.html#ListAll";
+  });
+  */
+
+  document.getElementById("buttonClear").addEventListener("click", function () {
+    document.getElementById("user").value = "";
+    document.getElementById("pass").value = "";
+  });
+
+  $(document).on("pagebeforeshow", "#Login", function (event) {   // have to use jQuery 
+    document.getElementById("user").value = "";
+    document.getElementById("pass").value = "";
+    });
+
+  $(document).on("pagebeforeshow", "#page3", function (event) {   // have to use jQuery 
+    let localUser = document.getElementById("IDparmHere").innerHTML;
+    console.log(localUser);
+    for(let i = 0; i < playerArray.length; i++) {   
+      let w = playerArray[localUser - 1].wins;
+      let l = playerArray[localUser - 1].losses;
+      if(playerArray[i].ID = localUser){
+        document.getElementById("listUser").innerHTML = "User Name: " + playerArray[localUser - 1].userName;
+        document.getElementById("listMoney").innerHTML = "Money $" + playerArray[localUser - 1].money;
+        document.getElementById("listGames").innerHTML = "Games Played " + (w + l);
+        document.getElementById("listWins").innerHTML = "Wins " + playerArray[localUser - 1].wins;
+        document.getElementById("listLoss").innerHTML = "Losses " + playerArray[localUser - 1].losses;
+        document.getElementById("listWinrate").innerHTML = "Winrate " + ((Math.round(w / (w + l) * 100))) + " %";
+      }  
     }
+  });
+
+  //beginning of card game code
+
+  let hits = 0;
+  let comphits = 0;
+  //scores for the game
+  let pScore = 0;
+  let cScore = 0;
+  let chips = 25;
+
+  const dealButton = document.getElementById("deal");
+  const hitButton = document.getElementById("hit");
+  const stayButton = document.getElementById("stay");
+
+  let pCard = document.getElementById("playerCard");
+  let cCard = document.getElementById("computerCard");
+  let result = document.getElementById("result");
+  let pSc = document.getElementById("pScore");
+  let cSc = document.getElementById("cScore");
+  let cash = document.getElementById("cash");
+
+  cash.innerHTML = "Cash: " + chips;
+
+  function hit () {
+    hits++;
+    pRank = player[hits].rank;
+    pSuit = player[hits].suit;
+    pCard.innerHTML += " || " + translateR(pRank) + " OF " +  translateS(pSuit);
+    pScore += updateScore(pRank);
   }
+
+  //arrays store the decks for the player and computer
+  player = [];
+  computer = [];
+  //shuffles and deals a deck of cards to player and computer when button is clicked
+  dealButton.addEventListener("click", function() {
+    //resets the game
+    hits = 0;
+    comphits = 0;
+    pScore = 0;
+    cScore = 0;
+    pCard.innerHTML = "";
+    cCard.innerHTML = "";
+    result.innerHTML = "";
+
+    //places bet if player has enough money
+    if(chips == 0) {
+      result.innerHTML = "You don't have money to play.";
+    } else {
+      chips--;
+      playerArray[loginID].money--;
+      cash.innerHTML = "Cash: " + chips;
+      //creates a deck of 52 cards with ranks and suits
+      deck.load();
+      //shuffles the deck of cards
+      for(i = 0; i < 52; i++) {
+        const temp = Math.floor(Math.random() * (i + 1));
+        const swap = deck.cards[temp];
+        deck.cards[temp] = deck.cards[i];
+        deck.cards[i] = swap;
+      }
+      //splits the deck between player and computer
+      for(i = 0; i < 26; i++) {
+        player[i] = deck.cards[i];
+        computer[i] = deck.cards[i + 26];
+      }
+      //hides deal button and displays hit/stay buttons
+      dealButton.style.display = "none";
+      hitButton.style.display = "block";
+      stayButton.style.display = "block";
+    }
+  });
+
+    //deals the next card for each player when the button is clicked
+    hitButton.addEventListener("click", function() {
+      let pRank = player[hits].rank;
+      let pSuit = player[hits].suit;
+      let cRank = computer[hits].rank;
+      let cSuit = computer[hits].suit;
+
+      if(hits == 0) {
+        //deals the play 2 cards and 1 card to computer to begin game
+        pCard.innerHTML = translateR(pRank) + " OF " +  translateS(pSuit);
+        pScore += updateScore(pRank);
+        hit();
+        cCard.innerHTML = translateR(cRank) + " OF " +  translateS(cSuit);
+        cScore += cUpdateScore(cRank);
+      } else {
+        hit();
+        if(pScore > 21) {
+          result.innerHTML = "BUST!";
+          playerArray[loginID].losses++;
+          updateServer(playerArray[loginID]);
+          console.log(playerArray);
+          hitButton.style.display = "none";
+          stayButton.style.display = "none";
+          dealButton.style.display = "block";
+        }
+      }
+      
+      pSc.innerHTML = "Score: " + pScore;
+      cSc.innerHTML = "Score: " + cScore;
+
+    });
+
+    stayButton.addEventListener("click", function() {
+      //automates dealer actions
+      while(cScore < 17) {
+        comphits++;
+        cRank = computer[comphits].rank;
+        cSuit = computer[comphits].suit;
+        cCard.innerHTML += " || " + translateR(cRank) + " OF " +  translateS(cSuit);
+        cScore += cUpdateScore(cRank);
+      }
+      
+      //compares dealer and player cards to determine winner
+      if(cScore > 21) {
+        result.innerHTML = "PLAYER WINS!";
+        chips += 2;
+        playerArray[loginID].wins++;
+        playerArray[loginID].money += 2;
+        updateServer(playerArray[loginID]);
+        console.log(playerArray);
+      } else if(pScore == cScore) {
+        result.innerHTML = "PUSH! BETS RETURNED.";
+        chips++;
+        playerArray[loginID].money++;
+        updateServer(playerArray[loginID]);
+        console.log(playerArray);
+      } else if(pScore > cScore) {
+        result.innerHTML = "PLAYER WINS!";
+        chips += 2;
+        playerArray[loginID].wins++;
+        playerArray[loginID].money += 2;
+        updateServer(playerArray[loginID]);
+        console.log(playerArray);
+      } else {
+        playerArray[loginID].losses++;
+        updateServer(playerArray[loginID]);
+        console.log(playerArray);
+        result.innerHTML = "HOUSE WINS!";
+      }
+
+      cash.innerHTML = "Cash: " + chips;
+      cSc.innerHTML = "Score: " + cScore;
+
+      hitButton.style.display = "none";
+      stayButton.style.display = "none";
+      dealButton.style.display = "block";
+      
+    });
+    //end of card game code
+
+});
+
+function compareWins(a, b) {
+  const winsA = a.wins;
+  const winsB = b.wins;
+
+  let comparison = 0;
+  if (winsA > winsB) {
+    comparison = -1;
+  } else if (winsA < winsB) {
+    comparison = 1;
+  }
+  return comparison;
+}
+
+function compareMoney(a, b) {
+  const moneyA = a.money;
+  const moneyB = b.money;
+
+  let comparison = 0;
+  if (moneyA > moneyB) {
+    comparison = -1;
+  } else if (moneyA < moneyB) {
+    comparison = 1;
+  }
+  return comparison;
 }
 
 // using fetch to push an object up to server
@@ -147,16 +302,37 @@ function addNewPlayer(player) {
             console.log(err);
         });
 };
-    
+
+function updateServer(player) {
+  // the required post body data is the playerObject passed in, player
+  // create request object
+  const request = new Request('/users/home', {
+      method: 'POST',
+      body: JSON.stringify(player),
+      headers: new Headers({
+          'Content-Type': 'application/json'
+      })
+  });
+
+    // pass that request object we just created into the fetch()
+    fetch(request)
+        // wait for frist server promise response of "200" success (can name these returned promise objects anything you like)
+        // Note this one uses an => function, not a normal function, just to show you can do either 
+        .then(theResonsePromise => theResonsePromise.json())    // the .json sets up 2nd promise
+        // wait for the .json promise, which is when the data is back
+        .then(theResonsePromiseJson => console.log(theResonsePromiseJson), document.location.href = "#Home")
+        // that client console log will write out the message I added to the Repsonse on the server
+        .catch(function (err) {
+            console.log(err);
+        });
+};
 
 //compares username and password to existing elements in array
 function login (userName, password) {
   for (let i = 0; i < playerArray.length; i++) {
-    if(userName == playerArray[i].userName /*&& password == playerArray[i].userName*/) {
+    if(userName == playerArray[i].userName && password == playerArray[i].password) {
       console.log("Logging in...");
       return i;
-    } else {
-      i++;
     }
   }
   console.log("Login info was incorrect.")
@@ -173,7 +349,7 @@ function createList() {
   playerArray.forEach(function (element,) {   // use handy array forEach method
     var li = document.createElement('li');
     //try #page3
-    li.innerHTML = "<a data-transition='pop' class='showUserName' data-parm=" + element.ID + "  href='#home'>Get Details </a> " + element.ID + ":  " + element.userName + "  " + element.wins;
+    li.innerHTML = "<a data-transition='pop' class='showUserName' data-parm=" + element.ID + "  href='#home'>Get Details </a> " + element.ID + ":  " + element.userName;
     ul.appendChild(li);
     // ok, this is weird.  If I set the href in the <a  anchor to detailPage, it messes up the success of
     // the button event that I add in the loop below.  By setting it to home, it jumps to home for a second
@@ -210,3 +386,94 @@ function FillArrayFromServer() {
    console.log(err);
   });
 };
+
+function updateScore(c) {
+  switch (c) {
+    case 11:
+      rank = 10;
+      break;
+    case 12:
+      rank = 10;
+      break;
+    case 13:
+      rank = 10;
+      break;
+    case 14:
+      if(pScore > 10) {
+        rank = 1;
+      } else {
+        rank = 11;
+      }
+      break;
+    default:
+      rank = c;
+      break;
+  }
+  return rank;
+}
+
+function cUpdateScore(d) {
+  switch (d) {
+      case 11:
+          rank = 10;
+          break;
+      case 12:
+          rank = 10;
+          break;
+      case 13:
+          rank = 10;
+          break;
+      case 14:
+          if(cScore > 10) {
+              rank = 1;
+          } else {
+              rank = 11;
+          }
+          break;
+      default:
+          rank = d;
+          break;
+  }
+  return rank;
+}
+
+//translates suits to strings
+function translateS (s) {
+  switch (s) {
+      case 0:
+          suit = "SPADES";
+          break;
+      case 1:
+          suit = "CLUBS";
+          break;
+      case 2:
+          suit = "DIAMONDS";
+          break;
+      case 3:
+          suit = "HEARTS";
+          break;
+  }
+  return suit;
+}
+
+//translates face cards to strings
+function translateR (r) {
+  switch (r) {
+      case 11:
+          rank = "JACK";
+          break;
+      case 12:
+          rank = "QUEEN";
+          break;
+      case 13:
+          rank = "KING";
+          break;
+      case 14:
+          rank = "ACE";
+          break;
+      default:
+          rank = r;
+          break;
+  }
+  return rank;
+}
