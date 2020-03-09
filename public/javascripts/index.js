@@ -1,6 +1,7 @@
 let playerArray = [];
-let newOrOldUser = "None";
+let newOrOldUser = "NewUser";
 let loginID;
+let guest = true;
 
 // define a constructor to create player objects
 var Player = function (userName, password, wins, losses, money) {
@@ -25,15 +26,39 @@ document.addEventListener("DOMContentLoaded", function () {
       //changes money for user
       chips = playerArray[loginID].money;
       cash.innerHTML = "Cash: " + chips;
+      //sets guest boolean to false
+      guest = false;
 
     } else if (newOrOldUser == "NewUser") {
       //if new user, pushes user info to player array and to server
       let newPlayer = new Player(document.getElementById("user").value, document.getElementById("pass").value);
       addNewPlayer(newPlayer);
       console.log(playerArray);
-    } else {
-      //if none selected, prompts user to select login type
-      console.log("Please select something");
+    } else if (newOrOldUser == "DeleteUser") {
+      //deletes user from array
+      let deleteID = login(document.getElementById("user").value, document.getElementById("pass").value);
+      console.log("Delete ID " + deleteID);
+      // doing the call to the server right here
+      fetch('users/deleteUser/' + deleteID , {
+      // users/deleteMovie/Moonstruck   for example, this is what the URL looks like sent over the network
+          method: 'DELETE'
+      })  
+      // now wait for 1st promise, saying server was happy with request or not
+      .then(responsePromise1 => responsePromise1.text()) // ask for 2nd promise when server is node
+      .then(responsePromise2 =>  console.log(responsePromise2), document.location.href = "index.html#refreshPage")  // wait for data from server to be valid
+      // force jump off of same page to refresh the data after delete
+      .catch(function (err) {
+          console.log(err);
+          alert(err);
+        });
+      if(loginID == deleteID) {
+        //if deleted user was logged in, logs out as guest
+        loginID =  null;
+        guest = true;
+        document.getElementById("loggedInAs").innerHTML = "Logged in as Guest";
+        chips = 25;
+        cash.innerHTML = "Cash: " + chips;
+      }
     }
   });
 
@@ -65,11 +90,11 @@ document.addEventListener("DOMContentLoaded", function () {
     FillArrayFromServer();  // need to get fresh data
   });
 
-  /* leaving ListAll to force the pagebeforeshow on ListAll from within that page when delete
+  // leaving ListAll to force the pagebeforeshow on ListAll from within that page when delete
   $(document).on("pagebeforeshow", "#refreshPage", function (event) {   
     document.location.href = "index.html#ListAll";
   });
-  */
+  
 
   document.getElementById("buttonClear").addEventListener("click", function () {
     document.getElementById("user").value = "";
@@ -82,17 +107,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
   $(document).on("pagebeforeshow", "#page3", function (event) {   // have to use jQuery 
-    let localUser = document.getElementById("IDparmHere").innerHTML;
+    //IDparmHere
+    let localUser = document.getElementById("listUser").innerHTML;
     console.log(localUser);
-    for(let i = 0; i < playerArray.length; i++) {   
-      let w = playerArray[localUser - 1].wins;
-      let l = playerArray[localUser - 1].losses;
-      if(playerArray[i].ID = localUser){
-        document.getElementById("listUser").innerHTML = "User Name: " + playerArray[localUser - 1].userName;
-        document.getElementById("listMoney").innerHTML = "Money $" + playerArray[localUser - 1].money;
+    for(let i = 0; i < playerArray.length; i++) {
+      if(playerArray[i].userName = localUser) {
+        let w = playerArray[i].wins;
+        let l = playerArray[i].losses;
+        document.getElementById("listUser").innerHTML = "User Name: " + playerArray[i].userName;
+        document.getElementById("listMoney").innerHTML = "Money $" + playerArray[i].money;
         document.getElementById("listGames").innerHTML = "Games Played " + (w + l);
-        document.getElementById("listWins").innerHTML = "Wins " + playerArray[localUser - 1].wins;
-        document.getElementById("listLoss").innerHTML = "Losses " + playerArray[localUser - 1].losses;
+        document.getElementById("listWins").innerHTML = "Wins " + playerArray[i].wins;
+        document.getElementById("listLoss").innerHTML = "Losses " + playerArray[i].losses;
         document.getElementById("listWinrate").innerHTML = "Winrate " + ((Math.round(w / (w + l) * 100))) + " %";
       }  
     }
@@ -145,6 +171,28 @@ document.addEventListener("DOMContentLoaded", function () {
     //places bet if player has enough money
     if(chips == 0) {
       result.innerHTML = "You don't have money to play.";
+    } else if(guest) {
+      console.log("playing as guest");
+      chips--;
+      cash.innerHTML = "Cash: " + chips;
+      //creates a deck of 52 cards with ranks and suits
+      deck.load();
+      //shuffles the deck of cards
+      for(i = 0; i < 52; i++) {
+        const temp = Math.floor(Math.random() * (i + 1));
+        const swap = deck.cards[temp];
+        deck.cards[temp] = deck.cards[i];
+        deck.cards[i] = swap;
+      }
+      //splits the deck between player and computer
+      for(i = 0; i < 26; i++) {
+        player[i] = deck.cards[i];
+        computer[i] = deck.cards[i + 26];
+      }
+      //hides deal button and displays hit/stay buttons
+      dealButton.style.display = "none";
+      hitButton.style.display = "block";
+      stayButton.style.display = "block";
     } else {
       chips--;
       playerArray[loginID].money--;
@@ -188,8 +236,11 @@ document.addEventListener("DOMContentLoaded", function () {
         hit();
         if(pScore > 21) {
           result.innerHTML = "BUST!";
-          playerArray[loginID].losses++;
-          updateServer(playerArray[loginID]);
+          //updates server array if logged in (not guest)
+          if(!guest) {
+            playerArray[loginID].losses++;
+            updateServer(playerArray[loginID]);
+          }
           console.log(playerArray);
           hitButton.style.display = "none";
           stayButton.style.display = "none";
@@ -216,26 +267,34 @@ document.addEventListener("DOMContentLoaded", function () {
       if(cScore > 21) {
         result.innerHTML = "PLAYER WINS!";
         chips += 2;
-        playerArray[loginID].wins++;
-        playerArray[loginID].money += 2;
-        updateServer(playerArray[loginID]);
+        if(!guest) {
+          playerArray[loginID].wins++;
+          playerArray[loginID].money += 2;
+          updateServer(playerArray[loginID]);
+        }
         console.log(playerArray);
       } else if(pScore == cScore) {
         result.innerHTML = "PUSH! BETS RETURNED.";
         chips++;
-        playerArray[loginID].money++;
-        updateServer(playerArray[loginID]);
+        if(!guest) {
+          playerArray[loginID].money++;
+          updateServer(playerArray[loginID]);
+        }
         console.log(playerArray);
       } else if(pScore > cScore) {
         result.innerHTML = "PLAYER WINS!";
         chips += 2;
-        playerArray[loginID].wins++;
-        playerArray[loginID].money += 2;
-        updateServer(playerArray[loginID]);
+        if(!guest) {
+          playerArray[loginID].wins++;
+          playerArray[loginID].money += 2;
+          updateServer(playerArray[loginID]);
+        }
         console.log(playerArray);
       } else {
-        playerArray[loginID].losses++;
-        updateServer(playerArray[loginID]);
+        if(!guest) {
+          playerArray[loginID].losses++;
+          updateServer(playerArray[loginID]);
+        }
         console.log(playerArray);
         result.innerHTML = "HOUSE WINS!";
       }
@@ -341,15 +400,15 @@ function login (userName, password) {
 function createList() {
   // clear prior data
   var divUserlist = document.getElementById("divHiscores");
-  while (divHiscores.firstChild) {    // remove any old data so don't get duplicates
+  while (divHiscores.firstChild) {    // remove any old data so no duplicates
   divHiscores.removeChild(divHiscores.firstChild);
   };
 
   var ul = document.createElement('ul');  
-  playerArray.forEach(function (element,) {   // use handy array forEach method
+  playerArray.forEach(function (element,) {   // use array forEach method
     var li = document.createElement('li');
     //try #page3
-    li.innerHTML = "<a data-transition='pop' class='showUserName' data-parm=" + element.ID + "  href='#home'>Get Details </a> " + element.ID + ":  " + element.userName;
+    li.innerHTML = "<a data-transition='pop' class='showUserName' data-parm=" + element.userName + "  href='#home'>Get Details </a> " + element.ID + ":  " + element.userName;
     ul.appendChild(li);
     // ok, this is weird.  If I set the href in the <a  anchor to detailPage, it messes up the success of
     // the button event that I add in the loop below.  By setting it to home, it jumps to home for a second
@@ -361,10 +420,10 @@ function createList() {
   //set up an event for each new li item, if user clicks any, it writes >>that<< items data-parm into the hidden html 
   var classname = document.getElementsByClassName("showUserName");
   Array.from(classname).forEach(function (element) {
-      element.addEventListener('click', function(){
+      element.addEventListener('click', function() {
           var parm = this.getAttribute("data-parm");  // passing in the record.Id
-          //do something here with parameter on  pickbet page
-          document.getElementById("IDparmHere").innerHTML = parm;
+          //IDparmHere
+          document.getElementById("listUser").innerHTML = parm;
           document.location.href = "index.html#page3";
       });
   });

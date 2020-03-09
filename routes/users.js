@@ -45,6 +45,14 @@ router.get('/hiscores', function(req, res) {
   res.json(serverPlayerArray);
  });
 
+ /* DELETE to deleteUser. */
+ router.delete('/deleteUser/:ID', function(req, res) {
+  let ID = req.params.ID;
+  console.log('deleting User: ' + serverPlayerArray[ID].userName);
+  serverPlayerArray.splice(ID, 1);
+  res.status(200).send(JSON.stringify('deleted successfully'));
+});
+
 
 //  router.???('/userlist', function(req, res) {
 //  users.update({name: 'foo'}, {name: 'bar'})
