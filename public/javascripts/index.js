@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let localUser = document.getElementById("listUser").innerHTML;
     console.log(localUser);
     for(let i = 0; i < playerArray.length; i++) {
-      if(playerArray[i].userName = localUser) {
+      if(playerArray[i].userName == localUser) {
         let w = playerArray[i].wins;
         let l = playerArray[i].losses;
         document.getElementById("listUser").innerHTML = "User Name: " + playerArray[i].userName;
