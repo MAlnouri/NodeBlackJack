@@ -2,6 +2,8 @@ let playerArray = [];
 let newOrOldUser = "NewUser";
 let loginID;
 let guest = true;
+let loginNew = false;
+let loginNewPlayer;
 
 // define a constructor to create player objects
 var Player = function (userName, password, wins, losses, money) {
@@ -28,12 +30,12 @@ document.addEventListener("DOMContentLoaded", function () {
       cash.innerHTML = "Cash: " + chips;
       //sets guest boolean to false
       guest = false;
-
     } else if (newOrOldUser == "NewUser") {
       //if new user, pushes user info to player array and to server
-      let newPlayer = new Player(document.getElementById("user").value, document.getElementById("pass").value);
-      addNewPlayer(newPlayer);
+      loginNewPlayer = new Player(document.getElementById("user").value, document.getElementById("pass").value);
+      addNewPlayer(loginNewPlayer);
       console.log(playerArray);
+      loginNew = true;
     } else if (newOrOldUser == "DeleteUser") {
       //deletes user from array
       let deleteID = login(document.getElementById("user").value, document.getElementById("pass").value);
@@ -79,6 +81,25 @@ document.addEventListener("DOMContentLoaded", function () {
     playerArray = playerArray.sort(compareWins);
     createList();
     //document.location.href = "index.html#Hiscores";
+  });
+
+  $(document).on("pagebeforeshow", "#home", function (event) {   // have to use jQuery 
+    console.log("is this repeating");
+    FillArrayFromServer(); // need to get fresh data
+    if(loginNew == true) {
+      //logs in as newly created user
+      loginID = login(loginNewPlayer.userName, loginNewPlayer.password);
+      document.getElementById("loggedInAs").innerHTML = "Logged in as " + playerArray[loginID].userName;
+      //reveals logged in as element
+      document.getElementById("loggedInAs").style.display = "block";
+      //changes money for user
+      chips = playerArray[loginID].money;
+      cash.innerHTML = "Cash: " + chips;
+      //sets guest boolean to false
+      guest = false;
+      loginNew = false;
+      loginNewPlayer = undefined;
+    }
   });
 
   $(document).on("pagebeforeshow", "#Hiscores", function (event) {   // have to use jQuery 
