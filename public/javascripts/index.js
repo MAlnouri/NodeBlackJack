@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // leaving ListAll to force the pagebeforeshow on ListAll from within that page when delete
-  $(document).on("pagebeforeshow", "#refreshPage", function (event) {   
+  $(document).on("pagebeforeshow", "#refreshPage", function (event) { 
     document.location.href = "index.html#ListAll";
   });
   
