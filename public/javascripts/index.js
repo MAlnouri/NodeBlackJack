@@ -84,8 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   $(document).on("pagebeforeshow", "#home", function (event) {   // have to use jQuery 
-    console.log("is this repeating");
-    FillArrayFromServer(); // need to get fresh data
+    //FillArrayFromServer(); // need to get fresh data
     if(loginNew == true) {
       //logs in as newly created user
       loginID = login(loginNewPlayer.userName, loginNewPlayer.password);
